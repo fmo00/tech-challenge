@@ -2,17 +2,21 @@
   "name": "nu-challenge",
   "version": "1.0.0",
   "description": "resolution to nubank code challenge",
-  "main": "index.js",
-  "type": "module",
+  "main": "./bin/index.ts",
+  "type": "cjs",
   "scripts": {
-    "start": "npx tsx index.ts"
+    "start": "npx tsx ./bin/index.ts"
+  },
+  "bin": {
+    "mycli": "node ./bin/index.js"
   },
   "license": "ISC",
   "dependencies": {
-    "commander": "^11.1.0",
+    "decimal.js": "^10.4.3",
     "node-process": "^1.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.6"
+    "@types/node": "^20.11.6",
+    "typescript": "^5.3.3"
   }
 }

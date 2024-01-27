@@ -1,5 +1,6 @@
-import { InvestmentWallet } from './capital-gain-calculator.class'
-import { InputParser } from './input-parser.class'
+#! /usr/bin/env node
+import { InvestmentWallet } from '../capital-gain-calculator.class'
+import { InputParser } from '../input-parser.class'
 
 const inputParser = new InputParser()
 

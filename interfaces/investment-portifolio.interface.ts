@@ -1,9 +1,11 @@
 import { IStockOperation } from "./stock-operation.interface";
+import { ITax } from "./tax.interface";
 
 export interface IInvestmentPortfolio {
+    mediumStockPrice: string
     lastPurchasePrice: number,
     lastPurchaseQuantity: number;
-    debitValue: number;
-    history: IStockOperation[]
-    taxByOperation: []
+    debtValue: number;
+    history: IStockOperation[];
+    taxByOperation: ITax[];
 }
