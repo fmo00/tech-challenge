@@ -20,7 +20,9 @@ $ npm run tests
 ```
 
 ## Project documentation
-For this challenge solution, I identified two necessary "services", one for receiving and parsing the input(**InputParserService**) and other responsible for the business rules of capital gain (**InvestmentWallet**).
+Regarding using external dependencies, I chose only use node type, typescript and ts-jest for testing purposes.
+
+For this solution, I identified two necessary "services", one for receiving and parsing the input(**InputParserService**) and other responsible for the business rules of capital gain (**InvestmentWallet**).
 
 For receiving input data, I chose to implement my own file parser to minimize external dependencies, this task is executed by recognizing patterns and breaking down the received string. Finally, I convert the formatted string to a JSON which will be used as an object in InvestmentWallet. 
 
