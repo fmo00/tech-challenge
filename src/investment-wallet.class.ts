@@ -1,14 +1,14 @@
-import { CONSTANT } from "./common/constant";
-import { OPERATION_TYPE } from "./enums/operation-type.enum";
-import { IInvestmentPortfolio } from "./interfaces/investment-portifolio.interface";
-import { IStockOperation } from "./interfaces/stock-operation.interface";
+import { CONSTANT } from "@/common/constant";
+import { OPERATION_TYPE } from "@/enums/operation-type.enum";
+import { IInvestmentPortfolio } from "@/interfaces/investment-portifolio.interface";
+import { IStockOperation } from "@/interfaces/stock-operation.interface";
 
 const { LIMIT_VALUE_FOR_EVADING_TAXES, TAX_RATE, ZERO_VALUE, NEGATIVE_CONSTANT_VALUE } = CONSTANT.WALLET
 
 export class InvestmentWallet {
     private wallet: IInvestmentPortfolio;
 
-    constructor(stockOps: IStockOperation[]) {
+    constructor(stockOps) {
         this.formatStockOperations(stockOps)
     }
 
