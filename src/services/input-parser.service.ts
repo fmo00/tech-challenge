@@ -1,12 +1,11 @@
+import { CONSTANT } from '@/common/constant';
 import * as fs from 'fs';
 
-const END_OF_OBJECT_REGEX = /},/g;
-const OBJECT_FORMAT_REGEX = /(\{[^{}]*\})/;
+const { END_OF_OBJECT_REGEX, OBJECT_FORMAT_REGEX } = CONSTANT.FILE_PARSER.REGEX
 
-const LIST_FINAL_TOKEN = ']'
-const LIST_INITIAL_TOKEN = '['
+const { LIST_FINAL_TOKEN, LIST_INITIAL_TOKEN } = CONSTANT.FILE_PARSER.TOKEN
 
-export class InputParser {
+export class InputParserService {
     constructor() { }
 
     readInputFile(filename: string): string | undefined {

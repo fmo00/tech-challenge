@@ -1,5 +1,5 @@
-import { IStockOperation } from "./stock-operation.interface";
-import { ITax } from "./tax.interface";
+import { IStockOperation } from "@/interfaces/stock-operation.interface";
+import { ITax } from "@/interfaces/tax.interface";
 
 export interface IInvestmentPortfolio {
     mediumStockPrice: string
@@ -7,5 +7,5 @@ export interface IInvestmentPortfolio {
     lastPurchaseQuantity: number;
     debtValue: number;
     history: IStockOperation[];
-    taxByOperation: ITax[];
+    taxCost: ITax[];
 }

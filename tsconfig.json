@@ -1,7 +1,22 @@
 {
     "compilerOptions": {
-        "target": "ES5",
-        "module": "CommonJS",
-        "sourceMap": true
-    }
+        "target": "ES6",
+        "module": "commonjs",
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "outDir": "./dist",
+        "rootDirs": [
+            "src"
+        ],
+        "baseUrl": "src",
+        "incremental": true,
+        "skipLibCheck": true,
+        "noFallthroughCasesInSwitch": false,
+        "paths": {
+            "@/*": [
+                "*"
+            ]
+        }
+    },
 }

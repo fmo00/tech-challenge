@@ -1,18 +1,25 @@
 #! /usr/bin/env node
-import { InvestmentWallet } from '../capital-gain-calculator.class'
-import { InputParser } from '../input-parser.class'
+import { InvestmentWallet } from '@/investment-wallet.class';
+import { InputParserService } from '@/services/input-parser.service';
 
-const inputParser = new InputParser()
+function readInputFile(filePath: string) {
+    const inputParser = new InputParserService()
 
-const fileContent: string | undefined = inputParser.readInputFile('case7.txt')
-const stockTradingList: string[] = inputParser.formatFileInputString(fileContent)
-const stockOperationJson = inputParser.getStockTimelineObjectsList(stockTradingList)
+    const fileContent: string | undefined = inputParser.readInputFile(filePath)
+    const stockTradingList = inputParser.formatFileInputString(fileContent)
+    return inputParser.getStockTimelineObjectsList(stockTradingList)
 
+}
 
-stockOperationJson.forEach((op) => {
-    const wallet = new InvestmentWallet(op)
-    wallet.executeTrading()
-    console.log(wallet.getWallet().taxByOperation)
+const args = process.argv;
+const filePath = args.slice(2).toString()
+
+const stockOperationJson = readInputFile(filePath)
+
+stockOperationJson.forEach((stockOperationJson) => {
+    const wallet = new InvestmentWallet(stockOperationJson)
+    wallet.executeTradingHistory()
+    console.log(wallet.getWallet().taxCost)
 })
 
 

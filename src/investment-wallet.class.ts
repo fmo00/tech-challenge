@@ -1,11 +1,9 @@
+import { CONSTANT } from "./common/constant";
 import { OPERATION_TYPE } from "./enums/operation-type.enum";
 import { IInvestmentPortfolio } from "./interfaces/investment-portifolio.interface";
 import { IStockOperation } from "./interfaces/stock-operation.interface";
 
-const LIMIT_VALUE_FOR_EVADING_TAXES = 20000;
-const TAX_RATE = 0.2
-const ZERO_VALUE = 0
-const NEGATIVE_CONSTANT_VALUE = -1
+const { LIMIT_VALUE_FOR_EVADING_TAXES, TAX_RATE, ZERO_VALUE, NEGATIVE_CONSTANT_VALUE } = CONSTANT.WALLET
 
 export class InvestmentWallet {
     private wallet: IInvestmentPortfolio;
@@ -18,7 +16,7 @@ export class InvestmentWallet {
         return this.wallet
     }
 
-    executeTrading() {
+    executeTradingHistory() {
         this.wallet.history.map((operation) => {
             if (this.isPurchase(operation)) {
                 this.handlePurchaseOperation(operation)
@@ -33,6 +31,11 @@ export class InvestmentWallet {
 
             if (this.isOperationProfitable(operation) && this.canOperationBeTaxed(operation.unitcost, operation.quantity)) {
                 const currentProfit = this.calculateOperationProfit(operation.unitcost, operation.quantity)
+
+                if (currentProfit < ZERO_VALUE) {
+                    this.handleProfitShortage(operation)
+                    return;
+                }
 
                 if (!this.hasDebtToBeCharged()) {
                     this.handleTaxReturn(currentProfit)
@@ -49,11 +52,12 @@ export class InvestmentWallet {
                 return;
             }
             this.handleProfitShortage(operation)
+            return;
         })
     }
 
     private calculateMediumStockPrice(operation: IStockOperation): void {
-        this.wallet.mediumStockPrice = this.calculateNewAverage(operation.unitcost, operation.quantity)
+        this.wallet.mediumStockPrice = this.calculateNewPriceAverage(operation.unitcost, operation.quantity)
     }
 
     private isOperationProfitable(operation: IStockOperation): boolean {
@@ -65,7 +69,7 @@ export class InvestmentWallet {
     }
 
     private setTaxReturnForOperation(taxValue: number): void {
-        this.wallet.taxByOperation.push({ tax: taxValue })
+        this.wallet.taxCost.push({ tax: taxValue })
     }
 
     private calculateOperationCost(operation: IStockOperation): number {
@@ -86,11 +90,10 @@ export class InvestmentWallet {
         const currentDebt = this.calculateOperationShortage(operation)
         this.setWalletDebit(currentDebt)
         this.setTaxReturnForOperation(ZERO_VALUE)
-        return;
     }
 
     private hasNoRemainingProfit(value: number): boolean {
-        return value === 0 || value < 0
+        return value === ZERO_VALUE || value < ZERO_VALUE
     }
     private calculateOperationShortage(operation: IStockOperation): number {
         return (this.wallet.lastPurchasePrice * operation.quantity - this.calculateOperationCost(operation)) * NEGATIVE_CONSTANT_VALUE
@@ -100,19 +103,16 @@ export class InvestmentWallet {
         this.wallet.debtValue = value
     }
 
-    private calculateNewAverage(currentCost: number, currentQuantity: number) {
-        const buyCost = parseFloat(this.wallet.lastPurchasePrice.toString())
-        const quantity = parseFloat(this.wallet.lastPurchaseQuantity.toString())
-        const denominador = (parseFloat(currentQuantity.toString()) + quantity)
+    private calculateNewPriceAverage(currentCost: number, currentQuantity: number) {
+        const currentPurchaseCost = currentQuantity * currentCost
+        const lastPurchaseCost = (this.wallet.lastPurchaseQuantity * this.wallet.lastPurchasePrice)
 
-        const vendaAtual = (parseFloat(currentQuantity.toString()) * parseFloat(currentCost.toString()))
+        const totalStockPurchaseAmount = currentQuantity + this.wallet.lastPurchaseQuantity
+        const totalPurchaseCost = currentPurchaseCost + lastPurchaseCost;
 
-        const ultimaCompra = (quantity * buyCost)
-        const saldo = vendaAtual + ultimaCompra;
+        const newPriceAverage = totalPurchaseCost / totalStockPurchaseAmount
 
-        const tudo = saldo / denominador
-
-        return parseFloat(tudo.toString()).toFixed(2)
+        return parseFloat(newPriceAverage.toString()).toFixed(2)
     }
 
     private isPurchase(stockOperation: IStockOperation): boolean {
@@ -174,9 +174,9 @@ export class InvestmentWallet {
             mediumStockPrice: '0',
             lastPurchasePrice: ZERO_VALUE,
             lastPurchaseQuantity: ZERO_VALUE,
-            debtValue: ZERO_VALUE,
+            debtValue: 0,
             history,
-            taxByOperation: []
+            taxCost: []
         }
     }
 }
