@@ -17,6 +17,7 @@ export class WalletMock {
 
     public static generatedWallet(): IInvestmentPortfolio {
         return {
+            stockQuantity: 0,
             mediumStockPrice: '0',
             lastPurchasePrice: 0,
             lastPurchaseQuantity: 0,
@@ -38,5 +39,15 @@ export class WalletMock {
 
     public static zeroTaxReturnObject() {
         return { tax: 0 }
+    }
+
+    public static stockListForOperationNotAllowed() {
+        return [
+            { "operation": 'buy', "unit-cost": 10, quantity: 10000 },
+            { "operation": 'sell', "unit-cost": 2, quantity: 150000 },]
+    }
+
+    public static taxReturnResults() {
+        return [{ "tax": 0 }, { "error": "Can't sell more stocks than you have" }]
     }
 }

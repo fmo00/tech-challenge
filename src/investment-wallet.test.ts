@@ -24,6 +24,35 @@ describe('When executing wallet trading history', () => {
     expect(isPurchaseSpy.mock.results[0]).toBeTruthy()
   });
 
+  describe("if operation is not allowed since request quantity is higher than stock quantity", () => {
+    it("tax return must be 0 and it must return an error", () => {
+
+      const newWallet = new InvestmentWallet(WalletMock.stockListForOperationNotAllowed());
+
+      const isSellNotAlowedByStockQuantitySpy = jest.spyOn(newWallet as any, 'isSellNotAlowedByStockQuantity')
+      const setTaxReturnForOperationSpy = jest.spyOn(newWallet as any, 'setTaxReturnForOperation')
+      const setErrorReturnForOperationSpy = jest.spyOn(newWallet as any, 'setErrorReturnForOperation')
+
+      newWallet.executeTradingHistory()
+
+      expect(setTaxReturnForOperationSpy).toHaveBeenCalledTimes(1)
+      expect(isSellNotAlowedByStockQuantitySpy.mock.results[0].value).toBeTruthy()
+      expect(setErrorReturnForOperationSpy).toHaveBeenCalledTimes(1)
+    });
+
+    it("tax return must be 0", () => {
+      const newWallet = new InvestmentWallet(WalletMock.stockListForOperationNotAllowed());
+
+      newWallet.executeTradingHistory()
+      console.log(newWallet.getWallet().taxCost)
+
+      expect(newWallet.getWallet().taxCost).toEqual(WalletMock.taxReturnResults())
+      /* expect(isSellNotAlowedByStockQuantitySpy.mock.results[0].value).toBeTruthy()
+      expect(setErrorReturnForOperationSpy).toHaveBeenCalledTimes(1) */
+    });
+  });
+
+
   it("if operation is a purchase, tax return must be 0", () => {
     wallet.executeTradingHistory()
 

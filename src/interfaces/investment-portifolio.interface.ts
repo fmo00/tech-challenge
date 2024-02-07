@@ -6,6 +6,7 @@ export interface IInvestmentPortfolio {
     lastPurchasePrice: number,
     lastPurchaseQuantity: number;
     debtValue: number;
+    stockQuantity: number;
     history: IStockOperation[];
     taxCost: ITax[];
 }

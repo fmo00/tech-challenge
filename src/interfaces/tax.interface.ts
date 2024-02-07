@@ -1,4 +1,5 @@
 
 export interface ITax {
-    tax: number;
+    tax?: number;
+    error?: string;
 }

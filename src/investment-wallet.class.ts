@@ -24,6 +24,12 @@ export class InvestmentWallet {
                 return;
             }
 
+            if (this.isSellNotAlowedByStockQuantity(operation)) {
+                this.setErrorReturnForOperation()
+                return;
+            }
+
+
             if (this.isOperationNotProfitable(operation)) {
                 this.setTaxReturnForOperation(ZERO_VALUE)
                 return;
@@ -31,6 +37,7 @@ export class InvestmentWallet {
 
             if (this.isOperationProfitable(operation) && this.canOperationBeTaxed(operation.unitcost, operation.quantity)) {
                 const currentProfit = this.calculateOperationProfit(operation.unitcost, operation.quantity)
+                this.updateStockQuantity(operation.quantity * NEGATIVE_CONSTANT_VALUE)
 
                 if (currentProfit < ZERO_VALUE) {
                     this.handleProfitShortage(operation)
@@ -76,9 +83,22 @@ export class InvestmentWallet {
         return operation.unitcost * operation.quantity;
     }
 
+    private setErrorReturnForOperation(): void {
+        this.wallet.taxCost.push({ error: "Can't sell more stocks than you have" })
+    }
+
+    private isSellNotAlowedByStockQuantity(operation: IStockOperation) {
+        return operation.quantity > this.wallet.stockQuantity
+    }
+
+    private updateStockQuantity(quantity: number): void {
+        this.wallet.stockQuantity += quantity
+    }
+
     private handlePurchaseOperation(operation: IStockOperation): void {
         this.calculateMediumStockPrice(operation)
         this.setLastPurchaseValues(operation)
+        this.updateStockQuantity(operation.quantity)
     }
 
     private handleTaxReturn(profit: number): void {
@@ -171,6 +191,7 @@ export class InvestmentWallet {
             }
         })
         this.wallet = {
+            stockQuantity: 0,
             mediumStockPrice: '0',
             lastPurchasePrice: ZERO_VALUE,
             lastPurchaseQuantity: ZERO_VALUE,
