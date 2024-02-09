@@ -1,8 +1,8 @@
-import { IStockOperation } from "@/interfaces/stock-operation.interface";
-import { ITax } from "@/interfaces/tax.interface";
+import { IStockOperation } from "@/interfaces/nested/stock-operation.interface";
+import { ITax } from "@/interfaces/nested/tax.interface";
 
 export interface IInvestmentPortfolio {
-    mediumStockPrice: string
+    purchaseMediumPrice: string
     lastPurchasePrice: number,
     lastPurchaseQuantity: number;
     debtValue: number;

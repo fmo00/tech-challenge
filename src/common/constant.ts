@@ -21,5 +21,15 @@ export const CONSTANT = {
     },
     RETURN: {
         ERROR_RETURN_OBJECT: { error: "Can't sell more stocks than you have" }
+    },
+    DEFAULT_VALUES: {
+        OPERATION: {
+            stockQuantity: 0,
+            purchaseMediumPrice: '0',
+            lastPurchasePrice: 0,
+            lastPurchaseQuantity: 0,
+            debtValue: 0,
+            taxCost: []
+        }
     }
 }
