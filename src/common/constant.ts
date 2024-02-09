@@ -12,7 +12,14 @@ export const CONSTANT = {
     WALLET: {
         LIMIT_VALUE_FOR_EVADING_TAXES: 20000,
         TAX_RATE: 0.2,
-        ZERO_VALUE: 0,
+        ZERO_NUMERIC_VALUE: 0,
+        ZERO_VALUE_STR: '0',
         NEGATIVE_CONSTANT_VALUE: -1,
+    },
+    CALCULATOR: {
+        DEFAULT_DECIMAL_PLACES_VALUE: 2
+    },
+    RETURN: {
+        ERROR_RETURN_OBJECT: { error: "Can't sell more stocks than you have" }
     }
 }
