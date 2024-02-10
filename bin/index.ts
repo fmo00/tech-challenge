@@ -10,16 +10,17 @@ function readInputFile(filePath: string) {
     return inputParser.getStockTimelineObjectsList(stockTradingList)
 
 }
+const INPUT_FILE_NAME_IDX = 2
 
 const args = process.argv;
-const filePath = args.slice(2).toString()
+const filePath = args.slice(INPUT_FILE_NAME_IDX).toString()
 
 const stockOperationJson = readInputFile(filePath)
 
 stockOperationJson.forEach((stockOperationJson) => {
     const wallet = new InvestmentWallet(stockOperationJson)
     wallet.executeTradingHistory()
-    console.log(wallet.getWallet().taxCost)
+    console.log(wallet.getTaxByOperation())
 })
 
 

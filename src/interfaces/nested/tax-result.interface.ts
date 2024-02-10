@@ -1,5 +1,5 @@
 
-export interface ITax {
+export interface ITaxResult {
     tax?: number;
     error?: string;
 }

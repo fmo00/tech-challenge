@@ -13,11 +13,7 @@ export const CONSTANT = {
         LIMIT_VALUE_FOR_EVADING_TAXES: 20000,
         TAX_RATE: 0.2,
         ZERO_NUMERIC_VALUE: 0,
-        ZERO_VALUE_STR: '0',
         NEGATIVE_CONSTANT_VALUE: -1,
-    },
-    CALCULATOR: {
-        DEFAULT_DECIMAL_PLACES_VALUE: 2
     },
     RETURN: {
         ERROR_RETURN_OBJECT: { error: "Can't sell more stocks than you have" }
@@ -26,10 +22,9 @@ export const CONSTANT = {
         OPERATION: {
             stockQuantity: 0,
             purchaseMediumPrice: '0',
-            lastPurchasePrice: 0,
-            lastPurchaseQuantity: 0,
+            lastPurchase: { 'operation': 'buy', 'unitcost': 0, 'quantity': 0 },
             debtValue: 0,
-            taxCost: []
+            taxByOperation: []
         }
     }
 }

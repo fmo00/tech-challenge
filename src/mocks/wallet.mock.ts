@@ -18,7 +18,7 @@ export class WalletMock {
     public static generatedWallet(): IInvestmentPortfolio {
         return {
             stockQuantity: 0,
-            mediumStockPrice: '0',
+            purchaseMediumPrice: '0',
             lastPurchasePrice: 0,
             lastPurchaseQuantity: 0,
             debtValue: 0,

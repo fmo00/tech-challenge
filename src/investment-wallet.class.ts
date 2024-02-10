@@ -1,32 +1,39 @@
 import { CONSTANT } from "@/common/constant";
 import { OPERATION_TYPE } from "@/enums/operation-type.enum";
-import { IInvestmentPortfolio } from "@/interfaces/investment-portifolio.interface";
-import { IStockOperation } from "@/interfaces/stock-operation.interface";
+import { IInvestmentWallet } from "@/interfaces/investment-wallet.interface";
+import { IStockOperation } from "@/interfaces/nested/stock-operation.interface";
+import { ITaxResult } from "@/interfaces/nested/tax-result.interface";
+import { StockTradingCalculatorService } from "./services/calculator.service";
 
-const { LIMIT_VALUE_FOR_EVADING_TAXES, TAX_RATE, ZERO_NUMERIC_VALUE, ZERO_VALUE_STR, NEGATIVE_CONSTANT_VALUE } = CONSTANT.WALLET
+const { LIMIT_VALUE_FOR_EVADING_TAXES, ZERO_NUMERIC_VALUE, NEGATIVE_CONSTANT_VALUE } = CONSTANT.WALLET
 const { ERROR_RETURN_OBJECT } = CONSTANT.RETURN
-
+const { OPERATION } = CONSTANT.DEFAULT_VALUES
 
 export class InvestmentWallet {
-    private wallet: IInvestmentPortfolio;
+    private wallet: IInvestmentWallet;
+    private calculator: StockTradingCalculatorService;
 
     constructor(stockOps: IStockOperation[]) {
-        this.formatStockOperations(stockOps)
+        this.calculator = new StockTradingCalculatorService()
+        this.generateWallet(stockOps)
     }
 
-    getWallet() {
+    getWallet(): IInvestmentWallet {
         return this.wallet
     }
 
+    getTaxByOperation(): ITaxResult[] {
+        return this.wallet.taxByOperation
+    }
+
     executeTradingHistory() {
-        this.wallet.history.map((operation: IStockOperation) => {
+        this.wallet.tradingHistory.map((operation: IStockOperation) => {
             if (this.isPurchase(operation)) {
                 this.handlePurchaseOperation(operation)
-                this.setTaxReturnForOperation(ZERO_NUMERIC_VALUE)
                 return;
             }
 
-            if (this.isSellNotAlowedByStockQuantity(operation)) {
+            if (!this.isSellAlowedByStockQuantity(operation)) {
                 this.setErrorReturnForOperation()
                 return;
             }
@@ -37,26 +44,7 @@ export class InvestmentWallet {
             }
 
             if (this.isOperationProfitable(operation) && this.canOperationBeTaxed(operation.unitcost, operation.quantity)) {
-                const currentProfit = this.calculateOperationProfit(operation.unitcost, operation.quantity)
-                this.updateStockQuantity(operation.quantity * NEGATIVE_CONSTANT_VALUE)
-
-                if (currentProfit < ZERO_NUMERIC_VALUE) {
-                    this.handleProfitShortage(operation)
-                    return;
-                }
-
-                if (!this.hasDebtToBeCharged()) {
-                    this.handleTaxReturn(currentProfit)
-                    return;
-                }
-
-                const remainingProfit = this.chargeDebt(currentProfit)
-                if (this.hasNoRemainingProfit(remainingProfit)) {
-                    this.setTaxReturnForOperation(ZERO_NUMERIC_VALUE)
-                    return;
-                }
-
-                this.handleTaxReturn(remainingProfit)
+                this.handleOperationTax(operation)
                 return;
             }
             this.handleProfitShortage(operation)
@@ -65,37 +53,35 @@ export class InvestmentWallet {
     }
 
     //Factory 
-    private formatStockOperations(stockOpsJsonList: IStockOperation[]): void {
-        const history = stockOpsJsonList.map((item) => {
-            const { operation, quantity, ...cost } = item
+    private generateWallet(stockOpsJsonList: IStockOperation[]): void {
+        const tradingHistory = this.generateStockTradingHistory(stockOpsJsonList)
+        this.wallet = {
+            ...OPERATION, tradingHistory
+        }
+    }
+
+    private generateStockTradingHistory(stockOpsJsonList: IStockOperation[]): IStockOperation[] {
+        return stockOpsJsonList.map((stockOperation) => {
+            const { operation, quantity, ...cost } = stockOperation
             return {
                 operation,
                 quantity,
                 unitcost: cost['unit-cost']
             }
         })
-        this.wallet = {
-            stockQuantity: ZERO_NUMERIC_VALUE,
-            mediumStockPrice: ZERO_VALUE_STR,
-            lastPurchasePrice: ZERO_NUMERIC_VALUE,
-            lastPurchaseQuantity: ZERO_NUMERIC_VALUE,
-            debtValue: ZERO_NUMERIC_VALUE,
-            history,
-            taxCost: []
-        }
     }
 
     //Validators
     private isOperationProfitable(operation: IStockOperation): boolean {
-        return this.wallet.mediumStockPrice < operation.unitcost.toString()
+        return this.wallet.purchaseMediumPrice < operation.unitcost.toString()
     }
 
     private isOperationNotProfitable(operation: IStockOperation): boolean {
-        return this.wallet.mediumStockPrice === operation.unitcost.toString()
+        return this.wallet.purchaseMediumPrice === operation.unitcost.toString()
     }
 
-    private isSellNotAlowedByStockQuantity(operation: IStockOperation) {
-        return operation.quantity > this.wallet.stockQuantity
+    private isSellAlowedByStockQuantity(operation: IStockOperation) {
+        return operation.quantity < this.wallet.stockQuantity
     }
 
     private hasNoRemainingProfit(value: number): boolean {
@@ -116,11 +102,11 @@ export class InvestmentWallet {
 
     //Setters
     private setTaxReturnForOperation(taxValue: number): void {
-        this.wallet.taxCost.push({ tax: taxValue })
+        this.wallet.taxByOperation.push({ tax: taxValue })
     }
 
     private setErrorReturnForOperation(): void {
-        this.wallet.taxCost.push(ERROR_RETURN_OBJECT)
+        this.wallet.taxByOperation.push(ERROR_RETURN_OBJECT)
     }
 
     private setWalletDebit(value: number): void {
@@ -131,66 +117,37 @@ export class InvestmentWallet {
         this.wallet.debtValue = value
     }
 
-    private setLastPurchaseValues(operation: IStockOperation): void {
-        this.wallet.lastPurchasePrice = operation.unitcost
-        this.wallet.lastPurchaseQuantity = operation.quantity
+    private setLastPurchase(operation: IStockOperation): void {
+        this.wallet.lastPurchase = operation
     }
 
-    //Calculator
-    private calculateMediumStockPrice(operation: IStockOperation): void {
-        this.wallet.mediumStockPrice = this.calculateNewPriceAverage(operation.unitcost, operation.quantity)
-    }
-
-    private calculateOperationCost(operation: IStockOperation): number {
-        return operation.unitcost * operation.quantity;
-    }
-
-    private calculateOperationShortage(operation: IStockOperation): number {
-        return (this.wallet.lastPurchasePrice * operation.quantity - this.calculateOperationCost(operation)) * NEGATIVE_CONSTANT_VALUE
-    }
-
-    private calculateNewPriceAverage(operation: IStockOperation) {
-        const currentPurchaseCost = this.calculateOperationCost(operation)
-        const lastPurchaseCost = (this.wallet.lastPurchaseQuantity * this.wallet.lastPurchasePrice)
-
-        const totalStockPurchaseAmount = operation.quantity + this.wallet.lastPurchaseQuantity
-        const totalPurchaseCost = currentPurchaseCost + lastPurchaseCost;
-
-        const newPriceAverage = totalPurchaseCost / totalStockPurchaseAmount
-
-        return parseFloat(newPriceAverage.toString()).toFixed(2)
-    }
-
-    private calculateOperationProfit(sellPrice: number, currentQuantity: number): number {
-        const valueWithPreviousPrice = this.wallet.lastPurchasePrice * currentQuantity
-        const currentSellValue = sellPrice * currentQuantity
-        const profit = valueWithPreviousPrice - currentSellValue
-
-        return parseFloat(profit.toString()) * NEGATIVE_CONSTANT_VALUE
-    }
-
-    private calculateTaxForOperation(value: number): number {
-        return value * (TAX_RATE)
+    private setStockQuantity(quantity: number): void {
+        this.wallet.stockQuantity = quantity
     }
 
     //Handlers
-    private updateStockQuantity(quantity: number): void {
-        this.wallet.stockQuantity += quantity
+    private calculateStockQuantity(quantity: number): number {
+        return this.wallet.stockQuantity += quantity
     }
-
+    private setMediumStockPrice(value: string): void {
+        this.wallet.purchaseMediumPrice = value
+    }
     private handlePurchaseOperation(operation: IStockOperation): void {
-        this.calculateMediumStockPrice(operation)
-        this.setLastPurchaseValues(operation)
-        this.updateStockQuantity(operation.quantity)
+        const newMediumStockPrice = this.calculator.calculateMediumStockPrice(operation, this.wallet.lastPurchase)
+        this.setMediumStockPrice(newMediumStockPrice)
+        this.setLastPurchase(operation)
+        const newStockQuantity = this.calculateStockQuantity(operation.quantity)
+        this.setStockQuantity(newStockQuantity)
+        this.setTaxReturnForOperation(ZERO_NUMERIC_VALUE)
     }
 
     private handleTaxReturn(profit: number): void {
-        const tax = this.calculateTaxForOperation(profit)
+        const tax = this.calculator.calculateTaxForOperation(profit)
         this.setTaxReturnForOperation(tax)
     }
 
     private handleProfitShortage(operation: IStockOperation) {
-        const currentDebt = this.calculateOperationShortage(operation)
+        const currentDebt = this.calculator.calculateOperationShortage(operation, this.wallet.lastPurchase.unitcost)
         this.setWalletDebit(currentDebt)
         this.setTaxReturnForOperation(ZERO_NUMERIC_VALUE)
     }
@@ -207,5 +164,30 @@ export class InvestmentWallet {
         this.setDebtValue(remaining)
         return this.wallet.debtValue;
     }
+
+    private handleOperationTax(operation: IStockOperation) {
+        const currentProfit = this.calculator.calculateOperationProfit(operation.unitcost, operation.quantity, this.wallet.lastPurchase)
+        const newStockQuantity = this.calculateStockQuantity(operation.quantity * NEGATIVE_CONSTANT_VALUE)
+        this.setStockQuantity(newStockQuantity)
+
+        if (currentProfit < ZERO_NUMERIC_VALUE) {
+            this.handleProfitShortage(operation)
+            return;
+        }
+
+        if (!this.hasDebtToBeCharged()) {
+            this.handleTaxReturn(currentProfit)
+            return;
+        }
+
+        const remainingProfit = this.chargeDebt(currentProfit)
+        if (this.hasNoRemainingProfit(remainingProfit)) {
+            this.setTaxReturnForOperation(ZERO_NUMERIC_VALUE)
+            return;
+        }
+
+        this.handleTaxReturn(remainingProfit)
+    }
+
 
 }
