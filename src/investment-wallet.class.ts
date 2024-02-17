@@ -1,9 +1,10 @@
 import { CONSTANT } from "@/common/constant";
 import { OPERATION_TYPE } from "@/enums/operation-type.enum";
+import { tradingHistoryFactory } from "@/factory/trading-history.factory";
 import { IInvestmentWallet } from "@/interfaces/investment-wallet.interface";
 import { IStockOperation } from "@/interfaces/nested/stock-operation.interface";
 import { ITaxResult } from "@/interfaces/nested/tax-result.interface";
-import { StockTradingCalculatorService } from "./services/calculator.service";
+import { StockTradingCalculatorService } from "@/services/calculator.service";
 
 const { LIMIT_VALUE_FOR_EVADING_TAXES, ZERO_NUMERIC_VALUE, NEGATIVE_CONSTANT_VALUE } = CONSTANT.WALLET
 const { ERROR_RETURN_OBJECT } = CONSTANT.RETURN
@@ -54,21 +55,10 @@ export class InvestmentWallet {
 
     //Factory 
     private generateWallet(stockOpsJsonList: IStockOperation[]): void {
-        const tradingHistory = this.generateStockTradingHistory(stockOpsJsonList)
+        const tradingHistory = tradingHistoryFactory(stockOpsJsonList)
         this.wallet = {
             ...OPERATION, tradingHistory
         }
-    }
-
-    private generateStockTradingHistory(stockOpsJsonList: IStockOperation[]): IStockOperation[] {
-        return stockOpsJsonList.map((stockOperation) => {
-            const { operation, quantity, ...cost } = stockOperation
-            return {
-                operation,
-                quantity,
-                unitcost: cost['unit-cost']
-            }
-        })
     }
 
     //Validators

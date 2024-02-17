@@ -6,7 +6,7 @@ hi there, thank you for taking the time to validate my solution! ٩(◕‿◕)۶
 
 ## How to run
 - Unzip project in a desired folder
-- Go to project folder (**nu-challenge**)
+- Go to project folder (**tech-challenge**)
 ```
 $ npm install
 $ npm run start ./test/case1.txt
@@ -14,13 +14,13 @@ $ npm run start ./test/case1.txt
 When using npm run start, please specify input file path in line.
 
 ## How to run tests
-- Go to project folder (**nu-challenge**)
+- Go to project folder (**tech-challenge**)
 ```
 $ npm run tests
 ```
 
 ## Project documentation
-Regarding using external dependencies, I chose only use node type, typescript and ts-jest for testing purposes.
+Regarding using external dependencies, I chose to only use node type, typescript and ts-jest for testing purposes.
 
 For this solution, I identified two necessary "services", one for receiving and parsing the input(**InputParserService**) and other responsible for the business rules of capital gain (**InvestmentWallet**).
 
